@@ -15,7 +15,7 @@ jobs:
       - name: 检出仓库代码
         uses: actions/checkout@v3
 
-      - name: 下载 Global_Compilation.txt
+      - name: 下载 cn_urls.txt
         run: |
           curl -L -o Global_Compilation.txt "https://raw.githubusercontent.com/cs2021hv001/CN_Compilation/refs/heads/main/cn_urls.txt"
 
@@ -42,7 +42,7 @@ jobs:
           echo "下载失败的总数: $failed_count" >> "$failed_log"
           touch "$failed_log"
 
-      - name: 下载并合并 gfw.txt
+      - name: 下载并合并 china域名
         run: |
           mkdir -p output
           
@@ -52,6 +52,9 @@ jobs:
           # 下载 gfw.txt 并追加
           curl -L -o downloaded_files/gfw.txt "https://fastly.jsdelivr.net/gh/felixonmars/dnsmasq-china-list/accelerated-domains.china.conf"
           cat downloaded_files/gfw.txt >> output/temp_list.txt
+
+          # 删除注释行（以 # 开头的）
+          grep -v '^#' output/temp_list.txt > output/cleaned_list.txt
 
           # 提取域名、初步去重
           sed -e 's/^server=\/\([^\/]*\)\/114\.114\.114\.114/\1/' output/temp_list.txt | sort -u > output/CN_LIST.conf

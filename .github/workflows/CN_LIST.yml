@@ -17,7 +17,7 @@ jobs:
 
       - name: 下载 Global_Compilation.txt
         run: |
-          curl -L -o Global_Compilation.txt "https://raw.githubusercontent.com/cs2021hv001/Global_Compilation/refs/heads/main/cn_urls.txt"
+          curl -L -o Global_Compilation.txt "https://raw.githubusercontent.com/cs2021hv001/CN_Compilation/refs/heads/main/cn_urls.txt"
 
       - name: 读取链接并下载文件
         run: |

@@ -18,6 +18,10 @@ jobs:
       - name: 下载 cn_urls.txt
         run: |
           curl -L -o Global_Compilation.txt "https://raw.githubusercontent.com/cs2021hv001/CN_Compilation/refs/heads/main/cn_urls.txt"
+          if [ ! -s Global_Compilation.txt ]; then
+            echo "Error: Failed to download Global_Compilation.txt or file is empty"
+            exit 1
+          fi
 
       - name: 读取链接并下载文件
         run: |
@@ -40,6 +44,10 @@ jobs:
           done < Global_Compilation.txt
           
           echo "下载失败的总数: $failed_count" >> "$failed_log"
+          if [ ! -s downloaded_files/merged.txt ]; then
+            echo "Error: merged.txt is empty or not created"
+            exit 1
+          fi
           touch "$failed_log"
 
       - name: 下载并合并 china域名
@@ -48,22 +56,31 @@ jobs:
           
           # 处理 merged.txt，去掉 DOMAIN-SUFFIX, 前缀
           grep '^DOMAIN-SUFFIX,' downloaded_files/merged.txt | sed 's/^DOMAIN-SUFFIX,//' > output/temp_list.txt
+          echo "DEBUG: Content of temp_list.txt"
+          cat output/temp_list.txt
           
           # 下载 gfw.txt 并追加
           curl -L -o downloaded_files/gfw.txt "https://fastly.jsdelivr.net/gh/felixonmars/dnsmasq-china-list/accelerated-domains.china.conf"
+          if [ ! -s downloaded_files/gfw.txt ]; then
+            echo "Error: Failed to download gfw.txt or file is empty"
+            exit 1
+          fi
           cat downloaded_files/gfw.txt >> output/temp_list.txt
-
+          
           # 删除注释行（以 # 开头的）
           grep -v '^#' output/temp_list.txt > output/cleaned_list.txt
-
+          echo "DEBUG: Content of cleaned_list.txt"
+          cat output/cleaned_list.txt
+          
           # 提取域名、初步去重
           sed -e 's/^server=\/\([^\/]*\)\/114\.114\.114\.114/\1/' output/temp_list.txt | sort -u > output/CN_LIST.conf
           rm output/temp_list.txt
-
-          # 再次确认去重（防止意外重复）
+          
+          # 再次确认去重
           sort -u output/CN_LIST.conf -o output/CN_LIST.conf
- 
-          # 提交更改
+          echo "DEBUG: Content of CN_LIST.conf"
+          cat output/CN_LIST.conf
+
       - name: Commit changes
         run: |
           git config --global user.name 'GitHub Action'
